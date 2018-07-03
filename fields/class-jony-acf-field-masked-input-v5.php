@@ -105,6 +105,23 @@ class jony_acf_field_masked_input extends acf_field {
 		*  Please note that you must also have a matching $defaults value for the field name (font_size)
 		*/
 		
+		// prepend
+		acf_render_field_setting( $field, array(
+			'label'			=> __('Prepend','acf'),
+			'instructions'	=> __('Appears before the input','acf'),
+			'type'			=> 'text',
+			'name'			=> 'prepend',
+		));
+		
+		
+		// append
+		acf_render_field_setting( $field, array(
+			'label'			=> __('Append','acf'),
+			'instructions'	=> __('Appears after the input','acf'),
+			'type'			=> 'text',
+			'name'			=> 'append',
+		));
+		
 		$instructions = '';
 		$instructions = __('Type the desired Mask.','jony') . '<br/>';
 		$instructions.= '0 : ' . __( 'Required digit', 'jony' ) . '<br/>';
@@ -128,6 +145,27 @@ class jony_acf_field_masked_input extends acf_field {
 			'name'			=> 'reverse',
 			'ui'			  => 1
 		) );
+		
+		acf_render_field_setting( $field, array(
+			'label'			=> __( 'Save As', 'jony'),
+			'instructions'	=> 'How data should be saved in the database',
+			'type'			=> 'select',
+			'name'			=> 'save_as',
+			'choices'		=> array(
+								'text' 		=> __( 'Text', 'jony' ),
+								'integer' 	=> __( 'Integer', 'jony' ),
+								'float' 	=> __( 'Float', 'jony' )
+							)
+		) );
+		
+		acf_render_field_setting( $field, array(
+			'label'			=> __( 'Decimal Point', 'jony'),
+			'instructions'	=> 'What character will be used as decimal point (used only if "Save As" equals "Float").',
+			'type'			=> 'text',
+			'name'			=> 'decimal_point',
+			'maxlength'		=> '1',
+			'default_value' => '.',
+		) );
 
 	}
 	
@@ -150,6 +188,12 @@ class jony_acf_field_masked_input extends acf_field {
 	
 	function render_field( $field ) {
 		
+		// vars
+		$atts = array( 'type' => 'text' );
+		$keys = array( 'id', 'class', 'name', 'value', 'placeholder', 'maxlength', 'pattern' );
+		$keys2 = array( 'readonly', 'disabled', 'required' );
+		$html = '';
+		
 		
 		/*
 		*  Review the data of $field.
@@ -159,17 +203,44 @@ class jony_acf_field_masked_input extends acf_field {
 		$mask = esc_attr($field['mask']);
 		// Special Masks
 		if( in_array( $mask, array( 'cpf_cnpj' ) ) ){
-			$mask = 'data-special-mask="' . $mask . '"';
+			$atts['data-special-mask'] = $mask;
 		} else {
-			$mask = 'data-mask="' . $mask . '"';
+			$atts['data-mask'] = $mask;
 			if( $reverse ){
-				$mask .= ' data-reverse-mask';
+				$atts['data-reverse-mask'] = 'data-reverse-mask';
 			}
 		}
 		
-		?>
-		<input type="text" name="<?php echo esc_attr($field['name']) ?>" value="<?php echo esc_attr($field['value']) ?>" <?php echo $mask; ?> />
-		<?php
+		// prepend
+		if( $field['prepend'] !== '' ) {
+			$field['class'] .= ' acf-is-prepended';
+			$html .= '<div class="acf-input-prepend">' . acf_esc_html($field['prepend']) . '</div>';
+		}
+		
+		// append
+		if( $field['append'] !== '' ) {
+			$field['class'] .= ' acf-is-appended';
+			$html .= '<div class="acf-input-append">' . acf_esc_html($field['append']) . '</div>';
+		}
+		
+		// atts (value="123")
+		foreach( $keys as $k ) {
+			if( isset($field[ $k ]) ) $atts[ $k ] = $field[ $k ];
+		}
+		
+		// atts2 (disabled="disabled")
+		foreach( $keys2 as $k ) {
+			if( !empty($field[ $k ]) ) $atts[ $k ] = $k;
+		}
+		
+		// remove empty atts
+		$atts = acf_clean_atts( $atts );
+
+		// render
+		$html .= '<div class="acf-input-wrap">' . acf_get_text_input( $atts ) . '</div>';
+		
+		// return
+		echo $html;
 	}
 	
 		
@@ -376,15 +447,18 @@ class jony_acf_field_masked_input extends acf_field {
 	*  @return	$value
 	*/
 	
-	/*
-	
 	function update_value( $value, $post_id, $field ) {
-		
+		if( isset( $field['save_as'] ) ){
+			if( $field['save_as'] == 'integer' ){
+				$value = (int) preg_replace( '/[^0-9]/', '', $value );
+			} else if( $field['save_as'] == 'float' ){
+				$dec_point = ( isset( $field['decimal_point'] ) ) ? $field['decimal_point'] : '.';
+				$value = preg_replace( "/[^0-9{$dec_point}]/", '', $value );
+				$value = (float) str_replace( $dec_point, '.', $value );
+			}
+		}
 		return $value;
-		
 	}
-	
-	*/
 	
 	
 	/*

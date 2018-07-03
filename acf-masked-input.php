@@ -4,7 +4,7 @@
 Plugin Name: Advanced Custom Fields: Masked Input
 Plugin URI: https://github.com/jonyhayama/acf-masked-input
 Description: Adds masked inputs to ACF fields
-Version: 1.0.1
+Version: 1.0.2
 Author: Jony Hayama
 Author URI: http://jony.co
 License: GPLv2 or later

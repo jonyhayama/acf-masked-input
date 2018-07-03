@@ -21,6 +21,10 @@ This ACF field type is compatible with:
 
 ## Changelog
 
+### Version 1.0.2
+- Added "prepend" and "append" options
+- Added "save as" option
+
 ### Version 1.0.1
 - Added "reverse mask" option
 
